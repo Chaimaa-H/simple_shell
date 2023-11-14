@@ -1,10 +1,9 @@
 #include "shell.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 
+/**
+ * execute_command - Execute a command.
+ * @command: The command to execute.
+ */
 void execute_command(char *command)
 {
     pid_t pid;
@@ -12,25 +11,26 @@ void execute_command(char *command)
 
     if (access(command, F_OK) == -1)
     {
-        fprintf(stderr, "Command not found: %s\n", command);
+        fprintf(stderr, "%s: command not found\n", command);
         return;
     }
 
     pid = fork();
 
+    if (pid == -1)
+    {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+
     if (pid == 0)
     {
         /* Child process */
-        char *args[2];
-        args[0] = command;
-        args[1] = NULL;
-        execvp(command, args);
-        perror("Error executing command");
-        exit(EXIT_FAILURE);
-    }
-    else if (pid < 0)
-    {
-        perror("Error forking");
+        if (execlp(command, command, (char *)NULL) == -1)
+        {
+            perror("execlp");
+            exit(EXIT_FAILURE);
+        }
     }
     else
     {
